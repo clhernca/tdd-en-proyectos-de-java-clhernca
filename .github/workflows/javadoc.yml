@@ -1,0 +1,50 @@
+name: Publicar Javadoc en GitHub Pages
+
+on:
+  push:
+    branches:
+      - stable
+
+jobs:
+  publish-javadoc:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Generar Javadoc
+        run: |
+          javadoc -d docs \
+            -sourcepath src/main/java \
+            -subpackages com.tt1 \
+            -author -version \
+            -encoding UTF-8 \
+            -charset UTF-8 \
+            -docencoding UTF-8
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Subir documentación como artefacto
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/
+
+      - name: Publicar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
